@@ -9,6 +9,46 @@
  */
 (function($) {
 	
+	var props = (function() {
+	
+		var prefixes = ['Webkit', 'Moz', 'O'];
+		
+		var style = document.createElement('div').style;
+			  
+		function findProp(name) {
+			var result = '';
+			if (style[name] !== undefined) {
+				return name;
+			}
+			$.each(prefixes, function() {
+				var p = this + name.charAt(0).toUpperCase() + name.substring(1);
+				if (style[p] !== undefined) {
+					result = p;
+					return false;
+				}
+			});
+			return result;
+		}
+		
+		var result = {};
+		$.each(['transitionDuration', 'transitionProperty', 'transform', 'transformOrigin'], function() {
+			result[this] = findProp(this);
+		});
+		return result;
+		
+	})();
+	
+	var supports3d = (function() {
+		var s = document.createElement('div').style;
+		try {
+			s[props.transform] = 'translate3d(0,0,0)';
+			return s[props.transform].length > 0;
+		}
+		catch (ex) {
+			return false;
+		}
+	})();
+		
 	$.fn.transition = function(css, opts) {
 	
 		opts = $.extend({
@@ -23,15 +63,23 @@
 
 		this.each(function() {
 			var $this = $(this);
-		
-			var _duration = $this.css('-webkit-transition-duration');		
+			
+			if (!props.transitionProperty) {
+				$this.css(css);
+				if (opts.onFinish) {
+					$.proxy(opts.onFinish, $this)();
+				}
+				return;
+			}
+			
+			var _duration = $this.css(props.transitionDuration);		
 			
 			function apply() {
-				$this.css({'-webkit-transition-property': property, '-webkit-transition-duration': opts.duration + 's'});
+				$this.css(props.transitionProperty, property).css(props.transitionDuration, opts.duration + 's');
 				
 				$this.css(css);
 				if (opts.duration > 0) {
-					$this.one('webkitTransitionEnd', afterCompletion);
+					$this.one('webkitTransitionEnd oTransitionEnd mozTransitionEnd transitionEnd', afterCompletion);
 				}
 				else {
 					setTimeout(afterCompletion, 1);					
@@ -39,7 +87,7 @@
 			}
 			
 			function afterCompletion() {
-				$this.css('-webkit-transition-duration', _duration);
+				$this.css(props.transitionDuration, _duration);
 					
 				if (opts.onFinish) {
 					$.proxy(opts.onFinish, $this)();
@@ -70,7 +118,9 @@
 				result = t.fn;
 				return false;
 			}
-			$this.css({'-webkit-transition-duration': '0s', '-webkit-transform-origin': opts.origin, '-webkit-transform': t.format()});
+			$this.css(props.transitionDuration, '0s')
+				.css(props.transformOrigin, opts.origin)
+				.css(props.transform, t.format());
 		});
 		return result;
 	};
@@ -79,8 +129,9 @@
 		opts = $.extend({
 			origin: '0 0',
 		}, opts);
-		var css = $.extend(opts.css, {'-webkit-transform': transform(this, commands).format()});
-		this.css('-webkit-transform-origin', opts.origin).transition(css, opts);
+		var css = {};
+		css[props.transform] = transform(this, commands).format();
+		this.css(props.transformOrigin, opts.origin).transition(css, opts);
 	};
 	
 	
@@ -90,7 +141,6 @@
 			t = new Transformation();
 			el.data('transform', t);
 		}
-		
 		if (commands === 'reset') {
 			t.reset();
 		}
@@ -126,15 +176,22 @@
 	
 	/**
 	 * Class that encapsulates the state of multiple TransformFunctions. The state can be modified
-	 * using commands and converted into a string representation that can be used as value for 
-	 * the -webkit-transform property. The class is used internally by the transform plugin.
+	 * using commands and converted into a string representation that can be used as CSS value.
+	 * The class is used internally by the transform plugin.
 	 */
 	function Transformation() {
 		var fn = {
-			translate: new TransformFunction('translate3d({x}px,{y}px,{z}px)', {x:0, y:0, z:0}),
-			scale: new TransformFunction('scale3d({s},{s},1)', {s: 1}),
+			translate: new TransformFunction('translate({x}px,{y}px)', {x:0, y:0}),
+			scale: new TransformFunction('scale({s},{s})', {s:1}),
 			rotate: new TransformFunction('rotate({deg}deg)', {deg:0})
 		};
+		
+		if (supports3d) {
+			// Use 3D transforms for better performance
+			fn.translate = new TransformFunction('translate3d({x}px,{y}px,0px)', {x:0, y:0});
+			fn.scale = new TransformFunction('scale3d({s},{s},1)', {s: 1});
+		}	
+		
 		var commands = {
 			rotate: function(deg) {
 				fn.rotate.deg = deg;
@@ -150,16 +207,14 @@
 			},
 			translate: function(s) {
 				var t = fn.translate;
-				if (!s) s = {x: 0, y: 0, z: 1};
+				if (!s) s = {x: 0, y: 0};
 				t.x = (s.x !== undefined) ? parseInt(s.x) : t.x;
 				t.y = (s.y !== undefined) ? parseInt(s.y) : t.y;
-				t.z = (s.z !== undefined) ? parseInt(s.z) : t.z;
 			},
 			translateBy: function(s) {
 				var t = fn.translate;
 				t.x += parseInt(s.x) || 0;
 				t.y += parseInt(s.y) || 0;
-				t.z += parseInt(s.z) || 0;
 			},
 			zIndex: function(z) {
 				fn.translate.z = parseInt(z);

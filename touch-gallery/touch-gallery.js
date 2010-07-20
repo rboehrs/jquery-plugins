@@ -23,7 +23,6 @@
 				showGallery(thumbs, clickedThumb, getSrcCallback || $.fn.touchGallery.defaults.getSrcCallback);
 			}
 		});
-		$('#galleryStripe.ready:not(.panning) > .galleryPage').live('click', hideGallery);
 		return this;
 	};
 	
@@ -46,20 +45,28 @@
 	function doShowGallery(thumbs, clickedThumb, getSrcCallback) {
 		var index = thumbs.index(clickedThumb);
 		
+		$('html').css('overflow', 'hidden');
+		
 		var viewport = fitToView(preventTouch($('<div id="galleryViewport">').css({
 			position: 'absolute',
+			top: 0,
+			left: 0,
 			overflow: 'hidden'
 		}).appendTo('body')));
 		
 		var stripe = $('<div id="galleryStripe">').css({
 			position: 'absolute',
-			whiteSpace: 'nowrap',
 			height: '100%',
 			top: 0,
 			left: 0
 		}).transform({translate: {x: -index * innerWidth}}).appendTo(viewport);
 		
-		insertShade(viewport);
+		stripe.bind('click.gallery', hideGallery);
+		$(document).bind('keyup.gallery', function(event) {
+			if (event.keyCode == 27) {
+				hideGallery();
+			}
+		});
 		
 		trackTouch(stripe, innerWidth, index, thumbs.length-1);
 		
@@ -78,39 +85,52 @@
 				height: '100%'
 			}).width(innerWidth).data('thumbs', thumbs).data('thumb', $(this)).appendTo(stripe).activity(i != index);
 			
-			var img = new Image();
-			img.onload = function() {
-				
+			function insertImage() {
 				var $img = $(this).css({position: 'absolute', display: 'block'});
-				
 				centerImage(i, this, $img);
-				$img.transform('reset').appendTo(page.activity(false));
-					
+				$img.transform('reset');
 				if (i == index) {
-					makeInvisible(clickedThumb);
-					zoomIn(clickedThumb, $img, function() {
-						makeVisible(clickedThumb);
+					makeInvisible($img);
+				}
+				$img.appendTo(page.activity(false));
+				if (i == index) {
+					zoomIn(clickedThumb, makeInvisible($img), function() {
 						stripe.addClass('ready');
 					});
+					insertShade(viewport, function() {
+						makeVisible(clickedThumb);
+					});
 				}
-			};
+			}
+			
+			var img = new Image();
 			img.src = $.proxy(getSrcCallback, this)();
+			if (img.complete) {
+				// Opera sometimes doesn't invoke the onload handler of the clicked image.
+				$.proxy(insertImage, img)();
+			}
+			else {
+				img.onload = insertImage;
+			}
 		});	
 	}
 	
 	function hideGallery() {
-		var page = $(this);
-		$('#galleryShade').remove();
-		page.data('thumbs').removeClass('open');
-		var thumb = makeInvisible(page.data('thumb'));
-		
-		$('#galleryStripe').unbind('.pan');
-		$(window).unbind('.gallery');
-		
-		zoomOut(page.find('img'), thumb, function() {
-			makeVisible(thumb);
-			$('#galleryViewport').remove();
-		});
+		var stripe = $('#galleryStripe');
+		if (stripe.is('.ready') && !stripe.is('.panning')) {
+			$('#galleryShade').remove();
+			var page = stripe.find('.galleryPage').eq(stripe.data('galleryIndex'));
+			page.data('thumbs').removeClass('open');
+			var thumb = makeInvisible(page.data('thumb'));
+			
+			stripe.add(window).add(document).unbind('.gallery');
+			
+			zoomOut(page.find('img'), thumb, function() {
+				makeVisible(thumb);
+				$('#galleryViewport').remove();
+				$('html').css('overflow', '');
+			});
+		}
 	}
 	
 	/**
@@ -125,10 +145,7 @@
 	 * Sets position and size of the given jQuery object to match the current viewport dimensions.
 	 */
 	function fitToView(el) {
-		return el.width(innerWidth).height(innerHeight).css({
-			top: pageYOffset + 'px',
-			left: pageXOffset + 'px'
-		});
+		return el.css({top: pageYOffset + 'px', left: pageXOffset + 'px'}).width(innerWidth).height(innerHeight);
 	}
 	
 	function makeVisible(el) {
@@ -147,7 +164,7 @@
 	 * Inserts a black DIV before the given target element and performs an opacity 
 	 * transition form 0 to 1.
 	 */
-	function insertShade(target) {
+	function insertShade(target, onFinish) {
 		var l = Math.max(screen.width, screen.height) + Math.max(pageXOffset, pageYOffset);
 		$('<div id="galleryShade">').css({
 			position: 'absolute', top: 0, left: 0, background: '#000', opacity: 0
@@ -156,7 +173,7 @@
 		.height(l)
 		.insertBefore(target)
 		.transform('reset')
-		.transition({opacity: 1}, {delay: 1, duration: 1});
+		.transition({opacity: 1}, {delay: 1, duration: 0.8, onFinish: onFinish});
 	}
 	
 	/**
@@ -165,6 +182,12 @@
 	 */
 	function centerImage(i, img, el) {
 		el = el || $(img);
+		if (!img.naturalWidth) {
+			//Work-around for Opera which doesn't support naturalWidth/Height. This works because
+			//the function is invoked once for each image before it is scaled.
+			img.naturalWidth = img.width;
+			img.naturalHeight = img.height;
+		}
 		var s = Math.min(getViewportScale(), Math.min(innerHeight/img.naturalHeight, innerWidth/img.naturalWidth));
 		el.css({
 			top: Math.round((innerHeight - img.naturalHeight * s) / 2) +  'px',
@@ -187,8 +210,10 @@
 				y: t.top - b.top - Math.round((b.height * s - t.height) / 2)
 			}, 
 			scale: s
-		})
-		.transformTransition('reset', {delay: 1, onFinish: onFinish});
+		});
+		makeVisible(large);
+		makeInvisible(small);
+		large.transformTransition('reset', {delay: 1, onFinish: onFinish});
 	}
 	
 	/**
@@ -237,9 +262,18 @@
 	/**
 	 * Registers touch-event listeners to enable panning the given element.
 	 */
-	function trackTouch(el, pageWidth, index, max) {
+	function trackTouch(el, pageWidth, currentIndex, max) {
 		var scale = getViewportScale();
-		el.bind('touchstart.pan', function() {
+		el.data('galleryIndex', currentIndex);
+		function autoPan(dir) {
+			var i = Math.max(0, Math.min(el.data('galleryIndex') + dir, max));
+			el.data('galleryIndex', i);
+			if (dir != 0) {
+				el.addClass('panning').transformTransition({translate: {x: -i * pageWidth}}, {onFinish: function() { this.removeClass('panning')}});
+			}
+		}
+		
+		el.bind('touchstart.gallery', function() {
 			$(this).data('pan', {
 				startX: event.targetTouches[0].screenX,
 				lastX:event.targetTouches[0].screenX,
@@ -261,19 +295,27 @@
 			});
 			return false;
 		})
-		.bind('touchmove.pan', function() {
+		.bind('touchmove.gallery', function() {
 			var pan = $(this).data('pan');
 			$(this).transform({translateBy: {x: -pan.delta()}});
 			return false;
 		})
-		.bind('touchend.pan', function() {
+		.bind('touchend.gallery', function() {
 			var pan = $(this).data('pan');
 			if (pan.distance() == 0 && pan.duration() < 500) {
 				$(event.target).trigger('click');
 			}
 			else {
-				index = Math.max(0, Math.min(index + pan.dir, max));
-				$(this).addClass('panning').transformTransition({translate: {x: -index * pageWidth}}, {onFinish: function() { this.removeClass('panning')}});
+				autoPan(pan.dir);
+			}
+			return false;
+		});
+		$(document).bind('keydown.gallery', function(event) {
+			if (event.keyCode == 37) {
+				autoPan(-1);
+			}
+			else if (event.keyCode == 39) {
+				autoPan(1);
 			}
 			return false;
 		});
