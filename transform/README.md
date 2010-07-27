@@ -46,7 +46,7 @@ support CSS transitions, the new values are applied instantly.
 
 <dt>onFinish</dt>
 <dd>Callback that is invoked after the transition is finished. Default is `undefined`.</dd>
-
+</dl>
 
 Transform-Transitions
 ---------------------
