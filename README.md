@@ -2,13 +2,13 @@ NETEYE jQuery Plugin Collection
 ===============================
 
 
-[Activity Indicator](/neteye/jquery-plugins/tree/master//activity-indicator)
+[Activity Indicator](/neteye/jquery-plugins/tree/master/activity-indicator)
 ----------------------------------------------------------------------------
 
 Render vector-based, translucent activity indicators.
 
 
-[Touch Gallery](/neteye/jquery-plugins/tree/master//touch-gallery)
+[Touch Gallery](/neteye/jquery-plugins/tree/master/touch-gallery)
 ------------------------------------------------------------------
 
 Fullscreen image gallery, optimized for touch devices.
