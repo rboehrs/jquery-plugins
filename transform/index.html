@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js"></script>
+<!-- [Dependencies[ -->
+<script src="transform.js"></script>
+<!-- ]] -->
+
+<style type="text/css">
+body {
+	background: #00406c;
+	padding: 60px 10px 20px 20px;
+}
+div {
+	padding: 10px;
+	margin: 10px;
+	background: #fff;
+	float: left;
+}
+</style>
+</head>
+<body>
+
+<div id="test1">
+	Click to transform (rotate)
+</div>
+
+<div id="test2">
+	Click for transition (opacity)
+</div>
+
+<div id="test3">
+	Click for transform-transtion
+</div>
+
+
+<script>
+	$('#test1').toggle(
+		function() {
+			$(this).transform({rotate: 20, origin: 'center'});
+		},
+		function() {
+			$(this).transform('reset');
+		}
+	);
+	
+	$('#test2').toggle(
+		function() {
+			$(this).transition({opacity: 0.5});
+		},
+		function() {
+			$(this).transition({opacity: 1});
+		}
+	);
+	
+	$('#test3').toggle(
+		function() {
+			$(this).transformTransition({rotate: 20, origin: 'center', duration: 0.5});
+		},
+		function() {
+			$(this).transformTransition({reset: true, origin: 'center'});
+		}
+	);
+</script>
+
+</body>
+</html>
