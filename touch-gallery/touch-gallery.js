@@ -8,41 +8,56 @@
  * Version: @{VERSION}
  */
 (function($) {
-	
-	function bounds(el) {
-		return el.get(0).getBoundingClientRect();
-	}
-	
-	$.fn.touchGallery = function(getSrcCallback) {
+		
+	$.fn.touchGallery = function(opts) {
+		opts = $.extend({}, $.fn.touchGallery.defaults, opts);
 		var thumbs = this;
 		this.live('click', function(ev) {
 			ev.preventDefault();
 			var clickedThumb = $(this);
 			if (!clickedThumb.is('.open')) {
 				thumbs.addClass('open');
-				showGallery(thumbs, clickedThumb, getSrcCallback || $.fn.touchGallery.defaults.getSrcCallback);
+				openGallery(thumbs, clickedThumb, opts);
 			}
 		});
 		return this;
 	};
 	
+	/**
+	 * Default options.
+	 */
 	$.fn.touchGallery.defaults = {
-		getSrcCallback: function() {
+		getSource: function() {
 			return this.href;
 		}
 	};
 	
-	function showGallery(thumbs, clickedThumb, getSrcCallback) {
+	// ==========================================================================================
+	// Private functions
+	// ==========================================================================================
+	
+	
+	// Check if the browser supports touch events
+	var touchDevice = !!document.createElement('div').ontouchstart;
+	
+	/**
+	 * Opens the gallery. A spining activity indicator is displayed until the clicked image has
+	 * been loaded. When ready, showGallery() is called.
+	 */
+	function openGallery(thumbs, clickedThumb, opts) {
 		clickedThumb.activity();
 		var img = new Image();
 		img.onload = function() {
 			clickedThumb.activity(false);
-			doShowGallery(thumbs, clickedThumb, getSrcCallback);
+			showGallery(thumbs, clickedThumb, opts.getSource);
 		};
-		img.src = $.proxy(getSrcCallback, clickedThumb.get(0))();
+		img.src = $.proxy(opts.getSource, clickedThumb.get(0))();
 	}
 	
-	function doShowGallery(thumbs, clickedThumb, getSrcCallback) {
+	/**
+	 * Creates DOM elements to actually show the gallery.
+	 */
+	function showGallery(thumbs, clickedThumb, getSrcCallback) {
 		var index = thumbs.index(clickedThumb);
 		
 		$('html').css('overflow', 'hidden');
@@ -58,17 +73,10 @@
 			position: 'absolute',
 			height: '100%',
 			top: 0,
-			left: 0
-		}).transform({translate: {x: -index * innerWidth}}).appendTo(viewport);
+			left: (-index * getInnerWidth()) + 'px'
+		}).appendTo(viewport);
 		
-		stripe.bind('click.gallery', hideGallery);
-		$(document).bind('keyup.gallery', function(event) {
-			if (event.keyCode == 27) {
-				hideGallery();
-			}
-		});
-		
-		trackTouch(stripe, innerWidth, index, thumbs.length-1);
+		setupEventListeners(stripe, getInnerWidth(), index, thumbs.length-1);
 		
 		$(window).bind('orientationchange.gallery', function() {
 			fitToView(viewport);
@@ -80,10 +88,10 @@
 			var page = $('<div>').addClass('galleryPage').css({
 				display: 'block',
 				position: 'absolute',
-				left: i * innerWidth + 'px',
+				left: i * getInnerWidth() + 'px',
 				overflow: 'hidden',
 				height: '100%'
-			}).width(innerWidth).data('thumbs', thumbs).data('thumb', $(this)).appendTo(stripe).activity(i != index);
+			}).width(getInnerWidth()).data('thumbs', thumbs).data('thumb', $(this)).appendTo(stripe).activity(i != index);
 			
 			function insertImage() {
 				var $img = $(this).css({position: 'absolute', display: 'block'});
@@ -97,16 +105,15 @@
 					zoomIn(clickedThumb, makeInvisible($img), function() {
 						stripe.addClass('ready');
 					});
-					insertShade(viewport, function() {
-						makeVisible(clickedThumb);
-					});
+					insertShade(viewport);
 				}
 			}
 			
 			var img = new Image();
 			img.src = $.proxy(getSrcCallback, this)();
 			if (img.complete) {
-				// Opera sometimes doesn't invoke the onload handler of the clicked image.
+				// Opera sometimes doesn't invoke the onload handler of the clicked image,
+				// hence we invoke it manually if img.completed is true.
 				$.proxy(insertImage, img)();
 			}
 			else {
@@ -115,16 +122,13 @@
 		});	
 	}
 	
-	function hideGallery() {
-		var stripe = $('#galleryStripe');
+	function hideGallery(stripe) {
 		if (stripe.is('.ready') && !stripe.is('.panning')) {
 			$('#galleryShade').remove();
 			var page = stripe.find('.galleryPage').eq(stripe.data('galleryIndex'));
 			page.data('thumbs').removeClass('open');
-			var thumb = makeInvisible(page.data('thumb'));
-			
+			var thumb = page.data('thumb');
 			stripe.add(window).add(document).unbind('.gallery');
-			
 			zoomOut(page.find('img'), thumb, function() {
 				makeVisible(thumb);
 				$('#galleryViewport').remove();
@@ -134,38 +138,11 @@
 	}
 	
 	/**
-	 * Returns the reciprocal of the current zoom-factor.
-	 * @REVISIT Use screen.width / screen.availWidth instead?
-	 */
-	function getViewportScale() {
-		return innerWidth / document.documentElement.clientWidth;
-	}
-	
-	/**
-	 * Sets position and size of the given jQuery object to match the current viewport dimensions.
-	 */
-	function fitToView(el) {
-		return el.css({top: pageYOffset + 'px', left: pageXOffset + 'px'}).width(innerWidth).height(innerHeight);
-	}
-	
-	function makeVisible(el) {
-		return el.css('visibility', 'visible');
-	}
-	
-	function makeInvisible(el) {
-		return el.css('visibility', 'hidden');
-	}
-	
-	function preventTouch(el) {
-		return el.bind('touchstart', function() { return false; });
-	}
-
-	/**
 	 * Inserts a black DIV before the given target element and performs an opacity 
 	 * transition form 0 to 1.
 	 */
 	function insertShade(target, onFinish) {
-		var l = Math.max(screen.width, screen.height) + Math.max(pageXOffset, pageYOffset);
+		var l = Math.max(screen.width, screen.height) + Math.max(getScrollLeft(), getScrollTop());
 		$('<div id="galleryShade">').css({
 			position: 'absolute', top: 0, left: 0, background: '#000', opacity: 0
 		})
@@ -173,7 +150,7 @@
 		.height(l)
 		.insertBefore(target)
 		.transform('reset')
-		.transition({opacity: 1}, {delay: 1, duration: 0.8, onFinish: onFinish});
+		.transition({opacity: touchDevice ? 1 : 0.8}, {delay: 1, duration: 0.8, onFinish: onFinish});
 	}
 	
 	/**
@@ -188,10 +165,10 @@
 			img.naturalWidth = img.width;
 			img.naturalHeight = img.height;
 		}
-		var s = Math.min(getViewportScale(), Math.min(innerHeight/img.naturalHeight, innerWidth/img.naturalWidth));
+		var s = Math.min(getViewportScale(), Math.min(getInnerHeight()/img.naturalHeight, getInnerWidth()/img.naturalWidth));
 		el.css({
-			top: Math.round((innerHeight - img.naturalHeight * s) / 2) +  'px',
-			left: Math.round((innerWidth - img.naturalWidth * s) / 2) +  'px'
+			top: Math.round((getInnerHeight() - img.naturalHeight * s) / 2) +  'px',
+			left: Math.round((getInnerWidth() - img.naturalWidth * s) / 2) +  'px'
 		}).width(Math.round(img.naturalWidth * s));
 	}
 	
@@ -213,7 +190,7 @@
 		});
 		makeVisible(large);
 		makeInvisible(small);
-		large.transformTransition('reset', {delay: 1, onFinish: onFinish});
+		large.transformTransition({delay: 1, reset: true, onFinish: onFinish});
 	}
 	
 	/**
@@ -223,6 +200,12 @@
 	 * leaving it in place causes strange z-index/flickering issues.
 	 */
 	function zoomOut(large, small, onFinish) {
+		if (!$.fn.transition.supported) {
+			if (onFinish) {
+				onFinish();
+			}
+			return;
+		}
 		var b = bounds(large);
 		var t = bounds(small);
 		
@@ -236,8 +219,8 @@
 			position: 'absolute',
 			width: w + 'px',
 			height: h + 'px',
-			top: pageYOffset + Math.round((innerHeight-h) / 2) + 'px', 
-			left: pageXOffset + Math.round((innerWidth-w) / 2) + 'px'
+			top: getScrollTop() + Math.round((getInnerHeight()-h) / 2) + 'px', 
+			left: getScrollLeft() + Math.round((getInnerWidth()-w) / 2) + 'px'
 		})
 		.appendTo('body').append(large.css({
 			top: 1-Math.floor((b.height-h) / 2) + 'px', // -1px offset to match Flickr's square crops
@@ -252,28 +235,54 @@
 				x: t.left - b.left - Math.round((w * s - t.width) / 2), 
 				y: t.top - b.top - Math.round((h * s - t.height) / 2)
 			}, 
-			scale: s
-		}, {onFinish: function() {
-			div.remove();
-			onFinish();
-		}});
+			scale: s,
+			onFinish: function() {
+				div.remove();
+				onFinish();
+			}
+		});
 	}
 	
 	/**
-	 * Registers touch-event listeners to enable panning the given element.
+	 * Registers event listeners to enable flicking through the images.
 	 */
-	function trackTouch(el, pageWidth, currentIndex, max) {
+	function setupEventListeners(el, pageWidth, currentIndex, max) {
 		var scale = getViewportScale();
+		var xOffset = parseInt(el.css('left'));
 		el.data('galleryIndex', currentIndex);
-		function autoPan(dir) {
-			var i = Math.max(0, Math.min(el.data('galleryIndex') + dir, max));
+		
+		function getThumb(i) {
+			return el.find('.galleryPage').eq(i).data('thumb');
+		}
+		
+		function flick(dir) {
+			var i = el.data('galleryIndex');
+			makeVisible(getThumb(i));
+			i = Math.max(0, Math.min(i + dir, max));
 			el.data('galleryIndex', i);
-			if (dir != 0) {
-				el.addClass('panning').transformTransition({translate: {x: -i * pageWidth}}, {onFinish: function() { this.removeClass('panning')}});
+			makeInvisible(getThumb(i));
+			
+			if ($.fn.transform.supported) {
+				el.addClass('panning').transformTransition({translate: {x: -i * pageWidth - xOffset}, onFinish: function() { this.removeClass('panning'); }});
+			}
+			else {
+				el.css('left', -i * pageWidth + 'px');
 			}
 		}
 		
-		el.bind('touchstart.gallery', function() {
+		$(document).bind('keyup.gallery', function(event) {
+			if (event.keyCode == 37) {
+				el.trigger('prev');
+			}
+			else if (event.keyCode == 39) {
+				el.trigger('next');
+			}
+			if (event.keyCode == 27) {
+				el.trigger('close');
+			}
+		});
+		
+		el.bind('touchstart', function() {
 			$(this).data('pan', {
 				startX: event.targetTouches[0].screenX,
 				lastX:event.targetTouches[0].screenX,
@@ -295,30 +304,96 @@
 			});
 			return false;
 		})
-		.bind('touchmove.gallery', function() {
+		.bind('touchmove', function() {
 			var pan = $(this).data('pan');
 			$(this).transform({translateBy: {x: -pan.delta()}});
 			return false;
 		})
-		.bind('touchend.gallery', function() {
+		.bind('touchend', function() {
 			var pan = $(this).data('pan');
 			if (pan.distance() == 0 && pan.duration() < 500) {
 				$(event.target).trigger('click');
 			}
 			else {
-				autoPan(pan.dir);
+				flick(pan.dir);
 			}
 			return false;
-		});
-		$(document).bind('keydown.gallery', function(event) {
-			if (event.keyCode == 37) {
-				autoPan(-1);
-			}
-			else if (event.keyCode == 39) {
-				autoPan(1);
-			}
-			return false;
+		})
+		.bind('prev', function() {
+			flick(-1);
+		})
+		.bind('next', function() {
+			flick(1);
+		})
+		.bind('click close', function() {
+			hideGallery(el);
 		});
 	}
 	
+	/**
+	 * Sets position and size of the given jQuery object to match the current viewport dimensions.
+	 */
+	function fitToView(el) {
+		return el.css({top: getScrollTop() + 'px', left: getScrollLeft() + 'px'}).width(getInnerWidth()).height(getInnerHeight());
+	}
+	
+	/**
+	 * Returns the reciprocal of the current zoom-factor.
+	 * @REVISIT Use screen.width / screen.availWidth instead?
+	 */
+	function getViewportScale() {
+		return getInnerWidth() / document.documentElement.clientWidth;
+	}
+	
+	/**
+	 * Returns a window property with fallback to a property on the 
+	 * documentElement in Internet Explorer.
+	 */
+	function getWindowProp(name, ie) {
+		if (window[name] !== undefined) {
+			return window[name];
+		}
+		var d = document.documentElement;
+		if (d && d[ie]) {
+			return d[ie];
+		}
+		return document.body[ie];
+	}
+	
+	function getScrollTop() {
+		return getWindowProp('pageYOffset', 'scrollTop');
+	}
+	
+	function getScrollLeft() {
+		return getWindowProp('pageXOffset', 'scrollLeft');
+	}
+	
+	function getInnerWidth() {
+		return getWindowProp('innerWidth', 'clientWidth');
+	}
+	
+	function getInnerHeight() {
+		return getWindowProp('innerHeight', 'clientHeight');
+	}
+	
+	function makeVisible(el) {
+		return el.css('visibility', 'visible');
+	}
+	
+	function makeInvisible(el) {
+		return el.css('visibility', 'hidden');
+	}
+	
+	function bounds(el) {
+		var e = el.get(0);
+		if (e && e.getBoundingClientRect) {
+			return e.getBoundingClientRect();
+		}
+		return $.extend({width: el.width(), height: el.height()}, el.offset());
+	}
+	
+	function preventTouch(el) {
+		return el.bind('touchstart', function() { return false; });
+	}
+
 })(jQuery);

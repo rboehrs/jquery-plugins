@@ -9,6 +9,10 @@
  */
 (function($) {
 	
+	// ==========================================================================================
+	// Private functions
+	// ==========================================================================================
+	
 	var props = (function() {
 	
 		var prefixes = ['Webkit', 'Moz', 'O'];
@@ -48,91 +52,6 @@
 			return false;
 		}
 	})();
-		
-	$.fn.transition = function(css, opts) {
-	
-		opts = $.extend({
-			delay: 0,
-			duration: 0.4
-		}, opts);
-		
-		var property = '';
-		for (var n in css) {
-			property += n + ',';
-		}
-
-		this.each(function() {
-			var $this = $(this);
-			
-			if (!props.transitionProperty) {
-				$this.css(css);
-				if (opts.onFinish) {
-					$.proxy(opts.onFinish, $this)();
-				}
-				return;
-			}
-			
-			var _duration = $this.css(props.transitionDuration);		
-			
-			function apply() {
-				$this.css(props.transitionProperty, property).css(props.transitionDuration, opts.duration + 's');
-				
-				$this.css(css);
-				if (opts.duration > 0) {
-					$this.one('webkitTransitionEnd oTransitionEnd mozTransitionEnd transitionEnd', afterCompletion);
-				}
-				else {
-					setTimeout(afterCompletion, 1);					
-				}
-			}
-			
-			function afterCompletion() {
-				$this.css(props.transitionDuration, _duration);
-					
-				if (opts.onFinish) {
-					$.proxy(opts.onFinish, $this)();
-				}
-			}
-			
-			if (opts.delay > 0) {
-				setTimeout(apply, opts.delay);
-			}
-			else {
-				apply();
-			}
-		});
-		return this;
-	};
-	
-	$.fn.transform = function(commands, opts) {
-		opts = $.extend({
-			origin: '0 0',
-		}, opts);
-		
-		var result = this;
-		this.each(function() {
-			var $this = $(this);
-			
-			var t = transform($this, commands);
-			if (!commands) {
-				result = t.fn;
-				return false;
-			}
-			$this.css(props.transitionDuration, '0s')
-				.css(props.transformOrigin, opts.origin)
-				.css(props.transform, t.format());
-		});
-		return result;
-	};
-	
-	$.fn.transformTransition = function(commands, opts) {
-		opts = $.extend({
-			origin: '0 0',
-		}, opts);
-		var css = {};
-		css[props.transform] = transform(this, commands).format();
-		this.css(props.transformOrigin, opts.origin).transition(css, opts);
-	};
 	
 	
 	function transform(el, commands) {
@@ -141,7 +60,7 @@
 			t = new Transformation();
 			el.data('transform', t);
 		}
-		if (commands === 'reset') {
+		if (commands == 'reset' || commands.reset) {
 			t.reset();
 		}
 		else {
@@ -182,14 +101,14 @@
 	function Transformation() {
 		var fn = {
 			translate: new TransformFunction('translate({x}px,{y}px)', {x:0, y:0}),
-			scale: new TransformFunction('scale({s},{s})', {s:1}),
+			scale: new TransformFunction('scale({x},{y})', {x:1, y:1}),
 			rotate: new TransformFunction('rotate({deg}deg)', {deg:0})
 		};
 		
 		if (supports3d) {
 			// Use 3D transforms for better performance
 			fn.translate = new TransformFunction('translate3d({x}px,{y}px,0px)', {x:0, y:0});
-			fn.scale = new TransformFunction('scale3d({s},{s},1)', {s: 1});
+			fn.scale = new TransformFunction('scale3d({x},{y},1)', {x:1, y:1});
 		}	
 		
 		var commands = {
@@ -200,10 +119,18 @@
 				fn.rotate.deg += deg;
 			},
 			scale: function(s) {
-				fn.scale.s = s;
+				if (typeof s == 'number') {
+					s = {x: s, y: s};
+				}
+				fn.scale.x = s.x;
+				fn.scale.y = s.y;
 			},
 			scaleBy: function(s) {
-				fn.scale.s *= s;
+				if (typeof s == 'number') {
+					s = {x: s, y: s};
+				}
+				fn.scale.x *= s.x;
+				fn.scale.y *= s.y;
 			},
 			translate: function(s) {
 				var t = fn.translate;
@@ -215,15 +142,14 @@
 				var t = fn.translate;
 				t.x += parseInt(s.x) || 0;
 				t.y += parseInt(s.y) || 0;
-			},
-			zIndex: function(z) {
-				fn.translate.z = parseInt(z);
 			}
 		};
 		this.fn = fn;
 		this.exec = function(cmd) {
 			for (var n in cmd) {
-				commands[n](cmd[n]);
+				if (commands[n]) {
+					commands[n](cmd[n]);
+				}
 			}
 		};
 		this.reset = function() {
@@ -238,6 +164,96 @@
 			}
 			return s;
 		}
+	};
+	
+	// ==========================================================================================
+	// Public API
+	// ==========================================================================================
+	
+	$.fn.transform = function(opts) {
+		var result = this;
+		this.each(function() {
+			var $this = $(this);
+			var t = transform($this, opts);
+			if (!opts) {
+				result = t.fn;
+				return false;
+			}
+			var origin = opts && opts.origin ? opts.origin : '0 0';
+			$this.css(props.transitionDuration, '0s')
+				.css(props.transformOrigin, origin)
+				.css(props.transform, t.format());
+		});
+		return result;
+	};
+	
+	$.fn.transform.supported = !!props.transform;
+	
+	$.fn.transition = function(css, opts) {
+	
+		opts = $.extend({
+			delay: 0,
+			duration: 0.4
+		}, opts);
+		
+		var property = '';
+		for (var n in css) {
+			property += n + ',';
+		}
+
+		this.each(function() {
+			var $this = $(this);
+			
+			if (!$.fn.transition.supported) {
+				$this.css(css);
+				if (opts.onFinish) {
+					$.proxy(opts.onFinish, $this)();
+				}
+				return;
+			}
+			
+			var _duration = $this.css(props.transitionDuration);		
+			
+			function apply() {
+				$this.css(props.transitionProperty, property).css(props.transitionDuration, opts.duration + 's');
+				
+				$this.css(css);
+				if (opts.duration > 0) {
+					$this.one('webkitTransitionEnd oTransitionEnd mozTransitionEnd transitionEnd', afterCompletion);
+				}
+				else {
+					setTimeout(afterCompletion, 1);					
+				}
+			}
+			
+			function afterCompletion() {
+				$this.css(props.transitionDuration, _duration);
+					
+				if (opts.onFinish) {
+					$.proxy(opts.onFinish, $this)();
+				}
+			}
+			
+			if (opts.delay > 0) {
+				setTimeout(apply, opts.delay);
+			}
+			else {
+				apply();
+			}
+		});
+		return this;
+	};
+	
+	$.fn.transition.supported = !!props.transitionProperty;
+	
+	$.fn.transformTransition = function(opts) {
+		opts = $.extend({
+			origin: '0 0',
+			css: {}
+		}, opts);
+		var css = opts.css;
+		css[props.transform] = transform(this, opts).format();
+		this.css(props.transformOrigin, opts.origin).transition(css, opts);
 	};
 	
 })(jQuery);
