@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+<title>NETEYE Touch Gallery Demo</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1.0" />
 
@@ -35,6 +36,11 @@ img {
 	display: inline-block;
 	width: 74px;
 	height: 74px;
+	color: #fff;
+}
+#gallery a:focus {
+	-moz-outline: none;
+	outline: none;
 }
 </style>
 </head>
@@ -73,7 +79,13 @@ img {
 
 <script>
 	$(function() {
-		$('#gallery a').touchGallery();
+		var t = new Date().getTime();
+		$('#gallery a').touchGallery({
+			getSource: function() {
+				// Append a timestamp to test the activity indicator:
+				return this.href + '?' + t
+			}
+		});
 	});
 </script>
 
