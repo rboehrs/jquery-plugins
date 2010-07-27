@@ -23,14 +23,22 @@
 				$this.removeData('activity');
 			}
 			if (opts !== false) {
-				opts = $.extend({}, $.fn.activity.defaults, opts);
+				opts = $.extend({color: $this.css('color')}, $.fn.activity.defaults, opts);
 				
-				var el = render($this, opts).prependTo($this);
-				el.css({
-					position: 'absolute',
-					marginTop: Math.floor(($this.height() - el.height()) / 2) + 'px',
-					marginLeft: Math.floor(($this.width() - el.width()) / 2) + 'px'
-				});
+				var el = render($this, opts).css('position', 'absolute').prependTo(opts.outside ? 'body' : $this);
+				var margin = {
+					top: Math.floor(($this.outerHeight() - el.height()) / 2),
+					left: Math.floor(($this.outerWidth() - el.width()) / 2)
+				}
+				var offset = $this.offset();
+				if (opts.outside) {
+					el.css({top: offset.top + 'px', left: offset.left + 'px'});
+				}
+				else {
+					margin.top -= el.offset().top - offset.top;
+					margin.left -= el.offset().left - offset.left;
+				}
+				el.css({marginTop: margin.top + 'px', marginLeft: margin.left + 'px'});
 				animate(el, opts.segments, Math.round(10 / opts.speed) / 10);
 				$this.data('activity', el);
 			}
@@ -40,11 +48,16 @@
 	
 	$.fn.activity.defaults = {
 		segments: 12,
-		space: 2,
+		space: 3,
 		length: 7,
 		width: 4,
-		color: '#fff',
 		speed: 1.2
+	};
+	
+	$.fn.activity.getOpacity = function(opts, i) {
+		var steps = opts.steps || opts.segments-1;
+		var end = opts.opacity !== undefined ? opts.opacity : 1/steps;
+		return 1 - Math.min(i, steps) * (1 - end) / steps;
 	};
 	
 	/**
@@ -102,7 +115,7 @@
 					x2: 0, 
 					y2: innerRadius + d.length, 
 					transform: 'rotate(' + (360 / d.segments * i) + ', 0, 0)',
-					opacity: (1 / d.segments * (i+1))
+					opacity: $.fn.activity.getOpacity(d, i)
 				}));
 			}
 			return $('<div>').append(el).width(2*r).height(2*r);
@@ -189,7 +202,7 @@
 						width: s,
 						height: s,
 						rotation: (360 / d.segments * i) + 'deg'
-					}).append($('<stroke>', {color: d.color, weight: d.width + 'px', endcap: 'round', opacity: 1 / d.segments * (i+1)})));
+					}).append($('<stroke>', {color: d.color, weight: d.width + 'px', endcap: 'round', opacity: $.fn.activity.getOpacity(d, i)})));
 				}
 				return $('<group>', {coordsize: s + ' ' + s}).css({width: s, height: s, overflow: 'hidden'}).append(el);
 			}
