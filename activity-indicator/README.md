@@ -7,14 +7,15 @@ using SVG or VML.
 Features
 --------
 
-* Lightweight script (4Kb)
+* Lightweight script
 * No images required
 * No external CSS
 * Resolution independent
 * Alpha transparency
 * Highly configurable appearance
 * Works in all major browsers
-
+* Uses feature detection
+* Degrades gracefully
 
 Supported Browsers
 ------------------
@@ -25,6 +26,8 @@ Firefox 2.0
 Safari 3.2.1
 Internet Explorer 6.0
 Opera 10.6
+
+Of course newer versions of the various browsers are also supported.
 
 Dependencies
 ------------
@@ -62,3 +65,5 @@ greater than this value will have the same opacity. Default is segments-1.</dd>
 Useful if the target doesn't support nested elements, for example img, object or iframe 
 elements. Default is false.</dd>
 </dl>
+
+You may change the global defaults by modifying the `$.fn.activity.defaults` object.
