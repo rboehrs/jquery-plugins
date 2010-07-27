@@ -22,10 +22,10 @@ Supported Browsers
 
 The plugin has been successfully tested in the following browsers:
 
-Firefox 2.0
-Safari 3.2.1
-Internet Explorer 6.0
-Opera 10.6
+* Firefox 2.0
+* Safari 3.2.1
+* Internet Explorer 6.0
+* Opera 10.6
 
 Of course newer versions of the various browsers are also supported.
 
