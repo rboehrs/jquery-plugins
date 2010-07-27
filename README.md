@@ -2,19 +2,19 @@ NETEYE jQuery Plugin Collection
 ===============================
 
 
-[Activity Indicator](activity-indicator)
-----------------------------------------
+[Activity Indicator](/neteye/jquery-plugins/activity-indicator)
+---------------------------------------------------------------
 
 Render vector-based, translucent activity indicators.
 
 
-[Touch Gallery](touch-gallery)
-------------------------------
+[Touch Gallery](/neteye/jquery-plugins/touch-gallery)
+-----------------------------------------------------
 
 Fullscreen image gallery, optimized for touch devices.
 
 
-[Transform & Transition](transform)
------------------------------------
+[Transform & Transition](/neteye/jquery-plugins/transform)
+----------------------------------------------------------
 
 Thin abstraction layer for cross-browser CSS transforms and transitions.
