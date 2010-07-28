@@ -7,13 +7,10 @@ Supported Browsers
 ------------------
 
 The plugin was written and optimized for Mobile Safari running on the iPad or iPhone 4.
+It also runs in Dektop Safari, Firefox 4, as well as in Opera and Chrome.
 
-It also runs in Dektop Safari, as well as in Opera and Chrome (though animations are not
-as smooth as in Safari).
-
-The gallery is also viewable in Firefox and Internet Explorer, but the transition effects 
-are missing.
-
+The gallery is also viewable in older Firefox versions and Internet Explorer, but the 
+transition effects are missing.
 
 Dependencies
 ------------

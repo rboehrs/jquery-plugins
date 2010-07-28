@@ -1,5 +1,7 @@
-NETEYE jQuery Plugin Collection
-===============================
+NETEYE UX Plugin Collection
+===========================
+
+A collection of jQuery plugins for a beautiful web.
 
 
 [Activity Indicator](/neteye/jquery-plugins/tree/master/activity-indicator)
