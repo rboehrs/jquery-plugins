@@ -252,18 +252,19 @@
 		}
 		
 		function flick(dir) {
-			var currentIndex = el.data('galleryIndex');
-			makeVisible(getThumb(currentIndex));
-			var i = Math.max(0, Math.min(currentIndex + dir, max));
-			if (i != currentIndex) {
-				el.data('galleryIndex', i);
-				makeInvisible(getThumb(i));
-				if ($.fn.transform.supported) {
-					el.addClass('panning').transformTransition({translate: {x: -i * pageWidth - xOffset}, onFinish: function() { this.removeClass('panning'); }});
+			var i = el.data('galleryIndex');
+			makeVisible(getThumb(i));
+			i = Math.max(0, Math.min(i + dir, max));
+			el.data('galleryIndex', i);
+			makeInvisible(getThumb(i));
+			if ($.fn.transform.supported) {
+				var x = -i * pageWidth - xOffset;
+				if (x != el.transform().translate.x) {
+					el.addClass('panning').transformTransition({translate: {x: x}, onFinish: function() { this.removeClass('panning'); }});
 				}
-				else {
-					el.css('left', -i * pageWidth + 'px');
-				}
+			}
+			else {
+				el.css('left', -i * pageWidth + 'px');
 			}
 		}
 		
