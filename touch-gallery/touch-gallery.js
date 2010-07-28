@@ -45,7 +45,7 @@
 		var img = new Image();
 		img.onload = function() {
 			clickedThumb.activity(false);
-			showGallery(thumbs, clickedThumb, opts.getSource);
+			showGallery(thumbs, thumbs.index(clickedThumb), this, opts.getSource);
 		};
 		img.src = $.proxy(opts.getSource, clickedThumb.get(0))();
 	}
@@ -53,9 +53,7 @@
 	/**
 	 * Creates DOM elements to actually show the gallery.
 	 */
-	function showGallery(thumbs, clickedThumb, getSrcCallback) {
-		var index = thumbs.index(clickedThumb);
-		
+	function showGallery(thumbs, index, clickedImage, getSrcCallback) {
 		$('html').css('overflow', 'hidden');
 		
 		var viewport = fitToView(preventTouch($('<div id="galleryViewport">').css({
@@ -70,7 +68,7 @@
 			height: '100%',
 			top: 0,
 			left: (-index * getInnerWidth()) + 'px'
-		}).appendTo(viewport);
+		}).width(thumbs.length * getInnerWidth()).transform(false).appendTo(viewport);
 		
 		setupEventListeners(stripe, getInnerWidth(), index, thumbs.length-1);
 		
@@ -80,42 +78,36 @@
 		});
 		
 		thumbs.each(function(i) {
-			
 			var page = $('<div>').addClass('galleryPage').css({
 				display: 'block',
 				position: 'absolute',
 				left: i * getInnerWidth() + 'px',
 				overflow: 'hidden',
 				height: '100%'
-			}).width(getInnerWidth()).data('thumbs', thumbs).data('thumb', $(this)).appendTo(stripe).activity(i != index);
+			}).width(getInnerWidth()).data('thumbs', thumbs).data('thumb', $(this)).appendTo(stripe);
 			
-			function insertImage() {
-				var $img = $(this).css({position: 'absolute', display: 'block'});
-				centerImage(i, this, $img);
-				$img.transform('reset');
-				if (i == index) {
-					makeInvisible($img);
-				}
-				$img.appendTo(page.activity(false));
-				if (i == index) {
-					zoomIn(clickedThumb, makeInvisible($img), function() {
-						stripe.addClass('ready');
-					});
-					insertShade(viewport);
-				}
-			}
-			
-			var img = new Image();
-			img.src = $.proxy(getSrcCallback, this)();
-			if (img.complete) {
-				// Opera sometimes doesn't invoke the onload handler of the clicked image,
-				// hence we invoke it manually if img.completed is true.
-				$.proxy(insertImage, img)();
+			if (i == index) {
+				var $img = $(clickedImage).css({position: 'absolute', display: 'block'}).transform(false);
+				makeInvisible(centerImage(index, clickedImage, $img)).appendTo(page);
+				zoomIn($(this), $img, function() {
+					stripe.addClass('ready');
+					loadSurroundingImages(index);
+				});
+				insertShade(viewport);
 			}
 			else {
-				img.onload = insertImage;
+				page.activity({color: '#fff'});
+				var img = new Image();
+				var src = $.proxy(getSrcCallback, this)();
+				page.one('loadImage', function() {
+					img.src = src;
+				});
+				img.onload = function() {
+					var $this = $(this).css({position: 'absolute', display: 'block'}).transform(false);
+					centerImage(i, this, $this).appendTo(page.activity(false));
+				};
 			}
-		});	
+		});
 	}
 	
 	function hideGallery(stripe) {
@@ -166,6 +158,7 @@
 			top: Math.round((getInnerHeight() - img.naturalHeight * s) / 2) +  'px',
 			left: Math.round((getInnerWidth() - img.naturalWidth * s) / 2) +  'px'
 		}).width(Math.round(img.naturalWidth * s));
+		return el;
 	}
 	
 	/**
@@ -184,9 +177,11 @@
 			}, 
 			scale: s
 		});
-		makeVisible(large);
-		makeInvisible(small);
-		large.transformTransition({delay: 1, reset: true, onFinish: onFinish});
+		setTimeout(function() {
+			makeVisible(large);
+			makeInvisible(small);
+			large.transformTransition({reset: true, onFinish: onFinish});
+		}, 1);
 	}
 	
 	/**
@@ -239,6 +234,18 @@
 		});
 	}
 	
+	function getPage(i) {
+		return $('#galleryStripe .galleryPage').eq(i);
+	}
+	
+	function getThumb(i) {
+		return getPage(i).data('thumb');
+	}
+	
+	function loadSurroundingImages(i) {
+		getPage(i-1).add(getPage(i+1)).trigger('loadImage');
+	}
+	
 	/**
 	 * Registers event listeners to enable flicking through the images.
 	 */
@@ -247,16 +254,15 @@
 		var xOffset = parseInt(el.css('left'));
 		el.data('galleryIndex', currentIndex);
 		
-		function getThumb(i) {
-			return el.find('.galleryPage').eq(i).data('thumb');
-		}
-		
 		function flick(dir) {
 			var i = el.data('galleryIndex');
 			makeVisible(getThumb(i));
 			i = Math.max(0, Math.min(i + dir, max));
 			el.data('galleryIndex', i);
 			makeInvisible(getThumb(i));
+			
+			loadSurroundingImages(i);
+			
 			if ($.fn.transform.supported) {
 				var x = -i * pageWidth - xOffset;
 				if (x != el.transform().translate.x) {
