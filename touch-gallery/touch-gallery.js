@@ -145,8 +145,8 @@
 		.width(l)
 		.height(l)
 		.insertBefore(target)
-		.transform('reset')
-		.transition({opacity: 1}, {delay: 1, duration: 0.8, onFinish: onFinish});
+		.transform(false)
+		.transition({opacity: 1}, {delay: 200, duration: 0.8, onFinish: onFinish});
 	}
 	
 	/**
@@ -222,7 +222,7 @@
 			top: 1-Math.floor((b.height-h) / 2) + 'px', // -1px offset to match Flickr's square crops
 			left: -Math.floor((b.width-w) / 2) + 'px'
 		}))
-		.transform('reset');
+		.transform(false);
 		
 		b = bounds(div);
 		

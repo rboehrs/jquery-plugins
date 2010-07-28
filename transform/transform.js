@@ -60,8 +60,8 @@
 			t = new Transformation();
 			el.data('transform', t);
 		}
-		if (commands) {
-			if (commands == 'reset' || commands.reset) {
+		if (commands !== undefined) {
+			if (commands === false || commands.reset) {
 				t.reset();
 			}
 			else {
@@ -177,7 +177,7 @@
 		this.each(function() {
 			var $this = $(this);
 			var t = transform($this, opts);
-			if (!opts) {
+			if (opts === undefined) {
 				result = t.fn;
 				return false;
 			}
