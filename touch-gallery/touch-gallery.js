@@ -35,11 +35,7 @@
 	// ==========================================================================================
 	// Private functions
 	// ==========================================================================================
-	
-	
-	// Check if the browser supports touch events
-	var touchDevice = !!document.createElement('div').ontouchstart;
-	
+		
 	/**
 	 * Opens the gallery. A spining activity indicator is displayed until the clicked image has
 	 * been loaded. When ready, showGallery() is called.
@@ -150,7 +146,7 @@
 		.height(l)
 		.insertBefore(target)
 		.transform('reset')
-		.transition({opacity: touchDevice ? 1 : 0.8}, {delay: 1, duration: 0.8, onFinish: onFinish});
+		.transition({opacity: 1}, {delay: 1, duration: 0.8, onFinish: onFinish});
 	}
 	
 	/**
