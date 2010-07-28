@@ -270,16 +270,17 @@
 			}
 		}
 		
-		$(document).bind('keyup.gallery', function(event) {
+		$(document).bind('keydown.gallery', function(event) {
 			if (event.keyCode == 37) {
 				el.trigger('prev');
 			}
 			else if (event.keyCode == 39) {
 				el.trigger('next');
 			}
-			if (event.keyCode == 27) {
+			if (event.keyCode == 27 || event.keyCode == 32) {
 				el.trigger('close');
 			}
+			return false;
 		});
 		
 		el.bind('touchstart', function() {
