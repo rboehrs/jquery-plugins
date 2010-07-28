@@ -219,7 +219,7 @@
 				
 				$this.css(css);
 				if (opts.duration > 0) {
-					$this.one('webkitTransitionEnd oTransitionEnd mozTransitionEnd transitionEnd', afterCompletion);
+					$this.one('webkitTransitionEnd oTransitionEnd transitionend', afterCompletion);
 				}
 				else {
 					setTimeout(afterCompletion, 1);					
