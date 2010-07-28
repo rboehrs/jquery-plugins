@@ -20,71 +20,42 @@ body {
 	background: #00406c;
 	padding: 60px 10px 20px 20px;
 }
-img {
-	border: none;
-}
 #content {
 	padding: 50px 0 0 0;
 	width: 600px;
 }
-
 #gallery {
-	width: 234px;
-	position: relative;
+	width: 300px;
 }
-#gallery a {
-	display: inline-block;
-	width: 74px;
-	height: 74px;
-	color: #fff;
+#gallery div {
+	float: left;
+	width: 75px;
+	height: 75px;
+	margin: 0 8px 8px 0;
 }
-#gallery a:focus {
-	-moz-outline: none;
-	outline: none;
-}
+
 </style>
 </head>
 <body>
 
 <div id="content">
-
 	<div id="gallery">
-		<a href="http://farm3.static.flickr.com/2694/4421495317_bed974bbcd_o.jpg">
-			<img src="http://farm3.static.flickr.com/2694/4421495317_903a5813fa_s.jpg" style="width: 75px; height: 75px"/>
-		</a>
-		<a href="http://farm3.static.flickr.com/2681/4281272769_488081ee61_o.jpg">
-			<img src="http://farm3.static.flickr.com/2681/4281272769_88806e7b1b_s.jpg" style="width: 75px; height: 75px"/>
-		</a>
-		<a href="http://farm3.static.flickr.com/2779/4421495773_fa297caa05_o.jpg">
-			<img src="http://farm3.static.flickr.com/2779/4421495773_fc19cabd0f_s.jpg" style="width: 75px; height: 75px"/>
-		</a>
-		<a href="http://farm3.static.flickr.com/2729/4421495507_10e414349a_o.jpg">
-			<img src="http://farm3.static.flickr.com/2729/4421495507_5b87264a7a_s.jpg" style="width: 75px; height: 75px"/>
-		</a>
-		<a href="http://farm5.static.flickr.com/4062/4281245535_2640d5655c_o.jpg">
-			<img src="http://farm5.static.flickr.com/4062/4281245535_282e528856_s.jpg" style="width: 75px; height: 75px"/>
-		</a>
-		<a href="http://farm3.static.flickr.com/2787/4281993412_825d19d1b2_o.jpg">
-			<img src="http://farm3.static.flickr.com/2787/4281993412_856647e397_s.jpg" style="width: 75px; height: 75px"/>
-		</a>
-		<a href="http://farm5.static.flickr.com/4013/4282175446_229a83d244_o.jpg">
-			<img src="http://farm5.static.flickr.com/4013/4282175446_bb8166ba33_s.jpg" style="width: 75px; height: 75px"/>
-		</a>
-		<a href="http://farm3.static.flickr.com/2726/4281251123_409034d8f2_o.jpg">
-			<img src="http://farm3.static.flickr.com/2726/4281251123_be63b17066_s.jpg" style="width: 75px; height: 75px"/>
-		</a>
 	</div>
-
 </div>
 
 <script>
 	$(function() {
-		var t = new Date().getTime();
-		$('#gallery a').touchGallery({
-			getSource: function() {
-				// Append a timestamp to test the activity indicator:
-				return this.href + '?' + t
-			}
+	
+		$.getJSON("http://api.flickr.com/services/rest?method=flickr.photosets.getPhotos&api_key=ed144a125aca366df3438c58c0c0ec9d&photoset_id=72157624601158052&extras=url_sq,url_m,url_o,&format=json&jsoncallback=?", function(data) {
+			$.each(data.photoset.photo, function(i) {
+				$('<div>').append($('<img>').attr('src', this.url_sq)).data('flickr', this).appendTo('#gallery');
+			});
+			$('#gallery div').touchGallery({
+				getSource: function() {
+					var f = $(this).data('flickr');
+					return f.url_o || f.url_sq.replace('_s.', '_b.');
+				}
+			});
 		});
 	});
 </script>
