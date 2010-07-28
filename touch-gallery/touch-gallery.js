@@ -118,7 +118,7 @@
 			var thumb = page.data('thumb');
 			stripe.add(window).add(document).unbind('.gallery');
 			zoomOut(page.find('img'), thumb, function() {
-				makeVisible(thumb);
+				makeVisible(thumb).transform(false);
 				$('#galleryViewport').remove();
 				$('html').css('overflow', '');
 			});
@@ -191,7 +191,7 @@
 	 * leaving it in place causes strange z-index/flickering issues.
 	 */
 	function zoomOut(large, small, onFinish) {
-		if (!$.fn.transition.supported) {
+		if (large.length == 0 || !$.fn.transition.supported) {
 			if (onFinish) {
 				onFinish();
 			}
@@ -228,8 +228,8 @@
 			}, 
 			scale: s,
 			onFinish: function() {
-				div.remove();
 				onFinish();
+				div.remove();
 			}
 		});
 	}
