@@ -60,11 +60,13 @@
 			t = new Transformation();
 			el.data('transform', t);
 		}
-		if (commands == 'reset' || commands.reset) {
-			t.reset();
-		}
-		else {
-			t.exec(commands);
+		if (commands) {
+			if (commands == 'reset' || commands.reset) {
+				t.reset();
+			}
+			else {
+				t.exec(commands);
+			}
 		}
 		return t;
 	}
