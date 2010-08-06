@@ -54,14 +54,12 @@
 	 * Creates DOM elements to actually show the gallery.
 	 */
 	function showGallery(thumbs, index, clickedImage, getSrcCallback) {
-		$('html').css('overflow', 'hidden');
-		
 		var viewport = fitToView(preventTouch($('<div id="galleryViewport">').css({
-			position: 'absolute',
+			position: 'fixed',
 			top: 0,
 			left: 0,
 			overflow: 'hidden'
-		}).appendTo('body')));
+		}).transform(false).appendTo('body')));
 		
 		var stripe = $('<div id="galleryStripe">').css({
 			position: 'absolute',
@@ -84,7 +82,7 @@
 				left: i * getInnerWidth() + 'px',
 				overflow: 'hidden',
 				height: '100%'
-			}).width(getInnerWidth()).data('thumbs', thumbs).data('thumb', $(this)).appendTo(stripe);
+			}).width(getInnerWidth()).data('thumbs', thumbs).data('thumb', $(this)).transform(false).appendTo(stripe);
 			
 			if (i == index) {
 				var $img = $(clickedImage).css({position: 'absolute', display: 'block'}).transform(false);
@@ -93,7 +91,7 @@
 					stripe.addClass('ready');
 					loadSurroundingImages(index);
 				});
-				insertShade(viewport);
+				insertShade(viewport, function());
 			}
 			else {
 				page.activity({color: '#fff'});
@@ -120,7 +118,6 @@
 			zoomOut(page.find('img'), thumb, function() {
 				makeVisible(thumb).transform(false);
 				$('#galleryViewport').remove();
-				$('html').css('overflow', '');
 			});
 		}
 	}
@@ -130,13 +127,14 @@
 	 * transition form 0 to 1.
 	 */
 	function insertShade(target, onFinish) {
-		var l = Math.max(screen.width, screen.height) + Math.max(getScrollLeft(), getScrollTop());
-		$('<div id="galleryShade">').css({
-			position: 'absolute', top: 0, left: 0, background: '#000', opacity: 0
-		})
-		.width(l)
-		.height(l)
-		.insertBefore(target)
+		var el = $('<div id="galleryShade">').css({
+			position: 'fixed', top: 0, left: 0, background: '#000', width: '100%', height: '100%', opacity: 0
+		});
+		if (window.orientation) {
+			var l = Math.max(screen.width, screen.height) + Math.max(getScrollLeft(), getScrollTop());
+			el.width(l).height(l);
+		}
+		el.insertBefore(target)
 		.transform(false)
 		.transition({opacity: 1}, {delay: 200, duration: 0.8, onFinish: onFinish});
 	}
@@ -191,7 +189,7 @@
 	 * leaving it in place causes strange z-index/flickering issues.
 	 */
 	function zoomOut(large, small, onFinish) {
-		if (large.length == 0 || !$.fn.transition.supported) {
+		if (large.length === 0 || !$.fn.transition.supported) {
 			if (onFinish) {
 				onFinish();
 			}
@@ -251,7 +249,7 @@
 	 */
 	function setupEventListeners(el, pageWidth, currentIndex, max) {
 		var scale = getViewportScale();
-		var xOffset = parseInt(el.css('left'));
+		var xOffset = parseInt(el.css('left'), 10);
 		el.data('galleryIndex', currentIndex);
 		
 		function flick(dir) {
@@ -281,7 +279,7 @@
 			else if (event.keyCode == 39) {
 				el.trigger('next');
 			}
-			if (event.keyCode == 27 || event.keyCode == 32) {
+			if (event.keyCode == 27 || event.keyCode == 32) {
 				el.trigger('close');
 			}
 			return false;
@@ -316,7 +314,7 @@
 		})
 		.bind('touchend', function() {
 			var pan = $(this).data('pan');
-			if (pan.distance() == 0 && pan.duration() < 500) {
+			if (pan.distance() === 0 && pan.duration() < 500) {
 				$(event.target).trigger('click');
 			}
 			else {
@@ -339,7 +337,10 @@
 	 * Sets position and size of the given jQuery object to match the current viewport dimensions.
 	 */
 	function fitToView(el) {
-		return el.css({top: getScrollTop() + 'px', left: getScrollLeft() + 'px'}).width(getInnerWidth()).height(getInnerHeight());
+		if (window.orientation) {
+			el.css({top: getScrollTop() + 'px', left: getScrollLeft() + 'px'});
+		}
+		return el.width(getInnerWidth()).height(getInnerHeight());
 	}
 	
 	/**
