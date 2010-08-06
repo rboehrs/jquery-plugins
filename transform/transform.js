@@ -136,14 +136,16 @@
 			},
 			translate: function(s) {
 				var t = fn.translate;
-				if (!s) s = {x: 0, y: 0};
-				t.x = (s.x !== undefined) ? parseInt(s.x) : t.x;
-				t.y = (s.y !== undefined) ? parseInt(s.y) : t.y;
+				if (!s) {
+					s = {x: 0, y: 0};
+				}
+				t.x = (s.x !== undefined) ? parseInt(s.x, 10) : t.x;
+				t.y = (s.y !== undefined) ? parseInt(s.y, 10) : t.y;
 			},
 			translateBy: function(s) {
 				var t = fn.translate;
-				t.x += parseInt(s.x) || 0;
-				t.y += parseInt(s.y) || 0;
+				t.x += parseInt(s.x, 10) || 0;
+				t.y += parseInt(s.y, 10) || 0;
 			}
 		};
 		this.fn = fn;
@@ -161,12 +163,12 @@
 		};
 		this.format = function() {
 			var s = '';
-			for (var n in fn) {
-				s += fn[n].format() + ' ';
-			}
+			$.each(fn, function(k, v) {
+				s += v.format() + ' ';
+			});
 			return s;
-		}
-	};
+		};
+	}
 	
 	// ==========================================================================================
 	// Public API
@@ -174,18 +176,20 @@
 	
 	$.fn.transform = function(opts) {
 		var result = this;
-		this.each(function() {
-			var $this = $(this);
-			var t = transform($this, opts);
-			if (opts === undefined) {
-				result = t.fn;
-				return false;
-			}
-			var origin = opts && opts.origin ? opts.origin : '0 0';
-			$this.css(props.transitionDuration, '0s')
-				.css(props.transformOrigin, origin)
-				.css(props.transform, t.format());
-		});
+		if ($.fn.transform.supported) {
+			this.each(function() {
+				var $this = $(this);
+				var t = transform($this, opts);
+				if (opts === undefined) {
+					result = t.fn;
+					return false;
+				}
+				var origin = opts && opts.origin ? opts.origin : '0 0';
+				$this.css(props.transitionDuration, '0s')
+					.css(props.transformOrigin, origin)
+					.css(props.transform, t.format());
+			});
+		}
 		return result;
 	};
 	
@@ -199,9 +203,9 @@
 		}, opts);
 		
 		var property = '';
-		for (var n in css) {
-			property += n + ',';
-		}
+		$.each(css, function(k, v) {
+			property += k + ',';
+		});
 
 		this.each(function() {
 			var $this = $(this);
@@ -254,8 +258,11 @@
 			css: {}
 		}, opts);
 		var css = opts.css;
-		css[props.transform] = transform(this, opts).format();
-		this.css(props.transformOrigin, opts.origin).transition(css, opts);
+		if ($.fn.transform.supported) {
+			css[props.transform] = transform(this, opts).format();
+			this.css(props.transformOrigin, opts.origin);
+		}
+		return this.transition(css, opts);
 	};
 	
 })(jQuery);
