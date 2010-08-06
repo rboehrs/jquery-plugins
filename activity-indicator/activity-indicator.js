@@ -25,11 +25,11 @@
 			if (opts !== false) {
 				opts = $.extend({color: $this.css('color')}, $.fn.activity.defaults, opts);
 				
-				var el = render($this, opts).css('position', 'absolute').prependTo(opts.outside ? 'body' : $this);
+				el = render($this, opts).css('position', 'absolute').prependTo(opts.outside ? 'body' : $this);
 				var margin = {
 					top: Math.floor(($this.outerHeight() - el.height()) / 2),
 					left: Math.floor(($this.outerWidth() - el.width()) / 2)
-				}
+				};
 				var offset = $this.offset();
 				if (opts.outside) {
 					el.css({top: offset.top + 'px', left: offset.left + 'px'});
@@ -74,25 +74,25 @@
 	var animate = function() {
 	};
 	
+	/**
+	 * Utility function to create elements in the SVG namespace.
+	 */
+	function svg(tag, attr) {
+		var el = document.createElementNS("http://www.w3.org/2000/svg", tag || 'svg');
+		if (attr) {
+			$.each(attr, function(k, v) {
+				el.setAttributeNS(null, k, v);
+			});
+		}
+		return $(el);
+	}
+	
 	if (document.createElementNS && document.createElementNS( "http://www.w3.org/2000/svg", "svg").createSVGRect) {
 	
 		// =======================================================================================
 		// SVG Rendering
 		// =======================================================================================
 		
-		/**
-		 * Utility function to create elements in the SVG namespace.
-		 */
-		function svg(tag, attr) {
-			var el = document.createElementNS("http://www.w3.org/2000/svg", tag || 'svg');
-			if (attr) {
-				for (n in attr) {
-					el.setAttributeNS(null, n, attr[n]);
-				}
-			}
-			return $(el);
-		}
-	
 		/**
 		 * Rendering strategy that creates a SVG tree.
 		 */
@@ -119,7 +119,7 @@
 				}));
 			}
 			return $('<div>').append(el).width(2*r).height(2*r);
-		}
+		};
 				
 		// Check if Webkit CSS animations are available, as they work much better on the iPad
 		// than setTimeout() based animations.
@@ -129,31 +129,24 @@
 			var animations = {};
 		
 			/**
-			 * Adds CSS rule for a linear keyframe animation with the given number of steps.
-			 */
-			function addAnimation(steps) {
-				var name = 'spin' + steps;
-				var rule = '@-webkit-keyframes '+ name +' {';
-				for (var i=0; i < steps; i++) {
-					var p1 = Math.round(100000 / steps * i) / 1000;
-					var p2 = Math.round(100000 / steps * (i+1) - 1) / 1000;
-					var value = '% { -webkit-transform:rotate(' + Math.round(360 / steps * i) + 'deg); }\n';
-					rule += p1 + value + p2 + value; 
-				}
-				rule += '100% { -webkit-transform:rotate(100deg); }\n}';
-				document.styleSheets[0].insertRule(rule);
-				return name;
-			}
-			
-			/**
 			 * Animation strategy that uses dynamically created CSS animation rules.
 			 */
 			animate = function(el, steps, duration) {
 				if (!animations[steps]) {
-					animations[steps] = addAnimation(steps);
+					var name = 'spin' + steps;
+					var rule = '@-webkit-keyframes '+ name +' {';
+					for (var i=0; i < steps; i++) {
+						var p1 = Math.round(100000 / steps * i) / 1000;
+						var p2 = Math.round(100000 / steps * (i+1) - 1) / 1000;
+						var value = '% { -webkit-transform:rotate(' + Math.round(360 / steps * i) + 'deg); }\n';
+						rule += p1 + value + p2 + value; 
+					}
+					rule += '100% { -webkit-transform:rotate(100deg); }\n}';
+					document.styleSheets[0].insertRule(rule);
+					animations[steps] = name;
 				}
 				el.css('-webkit-animation', animations[steps] + ' ' + duration +'s linear infinite');
-			}
+			};
 		}
 		else {
 		
@@ -166,7 +159,7 @@
 				el.data('interval', setInterval(function() {
 					g.setAttributeNS(null, 'transform', 'rotate(' + (++rotation % steps * (360 / steps)) + ')');
 				},  duration * 1000 / steps));
-			}
+			};
 		}
 		
 	}
@@ -205,7 +198,7 @@
 					}).append($('<stroke>', {color: d.color, weight: d.width + 'px', endcap: 'round', opacity: $.fn.activity.getOpacity(d, i)})));
 				}
 				return $('<group>', {coordsize: s + ' ' + s}).css({width: s, height: s, overflow: 'hidden'}).append(el);
-			}
+			};
 		
 			/**
 		     * Animation strategy that modifies the VML rotation property using setInterval().
