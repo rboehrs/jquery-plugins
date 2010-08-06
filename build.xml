@@ -1,0 +1,17 @@
+<project name="NETEYE-jquery-plugins">
+	
+	<path id="plugins">
+		<fileset dir=".">
+			<include name="*/build.xml" />
+		</fileset>	
+	</path>
+	
+	<target name="dist">
+		<subant buildpathref="plugins" target="dist" />
+	</target>
+	
+	<target name="gh-pages">
+		<subant buildpathref="plugins" target="gh-pages" />
+	</target>
+	
+</project>
