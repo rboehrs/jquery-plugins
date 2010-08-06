@@ -26,9 +26,13 @@ body {
 }
 #gallery {
 	width: 300px;
+	overflow: hidden;
 }
-#gallery div {
+#gallery div,
+#gallery a {
+	display: block;
 	float: left;
+	color: #fff;
 	width: 75px;
 	height: 75px;
 	margin: 0 8px 8px 0;
@@ -41,11 +45,11 @@ body {
 <div id="content">
 	<div id="gallery">
 	</div>
+	<button onclick="$('#gallery').css('margin-top', innerHeight + 'px'); scrollTo(0, innerHeight); $(this).hide()">Move gallery below the fold</button>
 </div>
 
 <script>
 	$(function() {
-	
 		$.getJSON("http://api.flickr.com/services/rest?method=flickr.photosets.getPhotos&api_key=ed144a125aca366df3438c58c0c0ec9d&photoset_id=72157624601158052&extras=url_sq,url_m,url_o,&format=json&jsoncallback=?", function(data) {
 			$.each(data.photoset.photo, function(i) {
 				$('<div>').append($('<img>').attr('src', this.url_sq)).data('flickr', this).appendTo('#gallery');
@@ -57,6 +61,7 @@ body {
 				}
 			});
 		});
+		
 	});
 </script>
 
