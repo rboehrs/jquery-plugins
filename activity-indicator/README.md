@@ -44,16 +44,16 @@ To render the default indicator, invoke `.activity()`. To remove it, call
 appearance:
 
  - segments
-   The number of lines to draw. Default is 12.
+   The number of lines to draw. Default is `12`.
 
  - width
-   The width of each line. Default is 4.
+   The width of each line. Default is `4`.
 
  - space
-   The space between the inner ends of the lines. Default is 3.
+   The space between the inner ends of the lines. Default is `3`.
 
  - length
-   The length of the lines. Default is 7.
+   The length of the lines. Default is `7`.
 
  - color
    The color. Supported formats are #rgb and #rrggbb.
@@ -62,19 +62,29 @@ appearance:
  - steps
    The size of the gradient specified in number of segements.
    All segments with an index greater than this value will
-   have the same opacity. Default is segments-1.
+   have the same opacity. Default is `segments-1`.
 
  - opacity
-   The opacity of the lightest segment. Default is 1/steps.
+   The opacity of the lightest segment. Default is `1/steps`.
 
  - speed
-   Rotation speed in rounds per second. Default is 1.2.
+   Rotation speed in rounds per second. Default is `1.2`.
 
+ - align
+   The horizontal alignment. Possible values are `left`, `right` 
+   or `center` (default).
+
+ - valign
+   The vertical alignment. Possible values are `top`, `bottom` 
+   or `center` (default).
+
+ - padding
+   Extra padding around the indicator. Default is `4`.
  - outside
    Whether the spinner should be added to the body rather than
    to the target element. Useful if the target doesn't support
-   nested elements, for example img, object or iframe elements.
-   Default is false.
+   nested elements, for example img, object or input elements.
+   Default is `false`.
 
 
 You may change the global defaults by modifying the `$.fn.activity.defaults` object.

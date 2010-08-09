@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js"></script>
 <!-- [Dependencies[ -->
-<script src="activity.js"></script>
+<script src="activity-indicator.js"></script>
 <!-- ]] -->
 
 <style type="text/css">
@@ -13,7 +13,7 @@ body {
 	background: #00406c;
 	padding: 60px 10px 20px 20px;
 }
-.square, img {
+.square {
 	width: 180px;
 	height: 160px;
 	float: left;
@@ -37,8 +37,9 @@ body {
 </div>
 <div id="busy5" class="square" style="background:#afafaf">
 </div>
-<div id="busy6" class="square">
-Click to load some data in the background ...
+
+<div class="square" style="background:#002545">
+	<input id="busy6" type="text" style="padding:3px 25px 2px 0;" />
 </div>
 
 <script>
@@ -47,17 +48,8 @@ Click to load some data in the background ...
 		$('#busy2').activity({segments: 8, steps: 3, opacity: 0.3, width: 4, space: 0, length: 5, color: '#0b0b0b', speed: 1.5});
 		$('#busy3').activity({segments: 8, width:2, space: 0, length: 3, color: '#fff', speed: 1.5});
 		$('#busy4').activity({segments: 12, width: 5.5, space: 6, length: 13, color: '#252525', speed: 1.5});
-		$('#busy5').activity({segments: 12, steps: 3, width:2, space: 1, length: 3, color: '#030303', speed: 1.5});
-	});
-	
-	$('#busy6').click(function() {
-		var $this = $(this).activity();
-		var img = new Image();
-		img.onload = function() {
-			$this.activity(false);
-		};
-		img.src = 'http://farm3.static.flickr.com/2694/4421495317_bed974bbcd_o.jpg?t=' + new Date().getTime();
-		
+		$('#busy5').activity({segments: 12, align: 'left', valign: 'top', steps: 3, width:2, space: 1, length: 3, color: '#030303', speed: 1.5});
+		$('#busy6').activity({outside: true, align: 'right', segments: 10, steps: 3, width:2, space: 0, length: 3, color: '#000', speed: 1.5});
 	});
 </script>
 

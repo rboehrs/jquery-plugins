@@ -26,9 +26,11 @@
 				opts = $.extend({color: $this.css('color')}, $.fn.activity.defaults, opts);
 				
 				el = render($this, opts).css('position', 'absolute').prependTo(opts.outside ? 'body' : $this);
+				var h = $this.outerHeight() - el.height();
+				var w = $this.outerWidth() - el.width();
 				var margin = {
-					top: Math.floor(($this.outerHeight() - el.height()) / 2),
-					left: Math.floor(($this.outerWidth() - el.width()) / 2)
+					top: opts.valign == 'top' ? opts.padding : opts.valign == 'bottom' ? h - opts.padding : Math.floor(h / 2),
+					left: opts.align == 'left' ? opts.padding : opts.align == 'right' ? w - opts.padding : Math.floor(w / 2)
 				};
 				var offset = $this.offset();
 				if (opts.outside) {
@@ -51,7 +53,10 @@
 		space: 3,
 		length: 7,
 		width: 4,
-		speed: 1.2
+		speed: 1.2,
+		align: 'center',
+		valign: 'center',
+		padding: 4
 	};
 	
 	$.fn.activity.getOpacity = function(opts, i) {
