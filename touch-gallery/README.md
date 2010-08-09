@@ -24,7 +24,7 @@ The plugin requires jQuery v1.4.2 (or higher).
 Usage
 -----
 
-<div class="liquid"><!-- highlight html --></div>
+<div class="liquid highlight html"></div>
 
     <div id="gallery">
       <a href="image1.jpg">
@@ -42,12 +42,12 @@ Usage
       $('#gallery a').touchGallery();
     </script>
     
-<div class="liquid"><!-- endhighlight --></div>
+<div class="liquid endhighlight"></div>
 	
 By default the plugin uses the `href` attribute of the matched elements to obtain the URL of the
 large-scale images. You may change this behaviour by providing a `getSource` function:
 
-<div class="liquid"><!-- highlight html+javascript --></div>
+<div class="liquid highlight html+javascript!"></div>
 
     <img src="thumb1.jpg" data-large="image1.jpg" />
     <img src="thumb2.jpg" data-large="image2.jpg" />
@@ -61,7 +61,7 @@ large-scale images. You may change this behaviour by providing a `getSource` fun
       });
     </script>
 
-<div class="liquid"><!-- endhighlight --></div>
+<div class="liquid endhighlight"></div>
   
 Links
 -----
