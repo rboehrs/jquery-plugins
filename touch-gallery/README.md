@@ -41,7 +41,7 @@ Usage
     <script>
       $('#gallery a').touchGallery();
     </script>
-    
+
 <div class="liquid endhighlight"></div>
 	
 By default the plugin uses the `href` attribute of the matched elements to obtain the URL of the
