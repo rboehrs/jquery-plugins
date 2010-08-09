@@ -120,7 +120,7 @@
 				</tokenfilter>
 				<!-- Support for embeded liquid expressions: -->
 				<tokenfilter>
-					<replaceregex pattern="&lt;!--%(.*?)--&gt;" flags="s" replace="{%\1%}"/>
+					<replaceregex pattern="&lt;div class=&quot;liquid (.*?)&quot;&gt;&lt;/div&gt;" flags="s" replace="{% \1 %}"/>
 				</tokenfilter>
 				<!-- Strip the links section (and everything below) -->
 				<tokenfilter>

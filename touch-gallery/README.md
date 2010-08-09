@@ -47,7 +47,7 @@ Usage
 By default the plugin uses the `href` attribute of the matched elements to obtain the URL of the
 large-scale images. You may change this behaviour by providing a `getSource` function:
 
-<div class="liquid highlight html+javascript!"></div>
+<div class="liquid highlight html+javascript"></div>
 
     <img src="thumb1.jpg" data-large="image1.jpg" />
     <img src="thumb2.jpg" data-large="image2.jpg" />
