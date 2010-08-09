@@ -8,7 +8,9 @@
  * Version: @{VERSION}
  */
 (function($) {
-		
+	
+	var mobileSafari = /Mobile.*Safari/.test(navigator.userAgent);
+	
 	$.fn.touchGallery = function(opts) {
 		opts = $.extend({}, $.fn.touchGallery.defaults, opts);
 		var thumbs = this;
@@ -130,8 +132,9 @@
 		var el = $('<div id="galleryShade">').css({
 			position: 'fixed', top: 0, left: 0, background: '#000', width: '100%', height: '100%', opacity: 0
 		});
-		if (window.orientation) {
-			var l = Math.max(screen.width, screen.height) + Math.max(getScrollLeft(), getScrollTop());
+		if (mobileSafari) {
+			// Make the shade bigger so that it shadows the surface upon rotation
+			var l = Math.max(screen.width, screen.height) + Math.max(getScrollLeft(), getScrollTop()) + 100;
 			el.width(l).height(l);
 		}
 		el.insertBefore(target)
@@ -168,10 +171,12 @@
 		var b = bounds(large);
 		var t = bounds(small);
 		var s = Math.max(t.width / large.width(), t.height / large.height());
+		var ox = mobileSafari ? 0 : getScrollLeft();
+		var oy = mobileSafari ? 0 : getScrollTop();
 		large.transform({
 			translate: {
-				x: t.left - b.left - Math.round((b.width * s - t.width) / 2), 
-				y: t.top - b.top - Math.round((b.height * s - t.height) / 2)
+				x: t.left - b.left - ox - Math.round((b.width * s - t.width) / 2), 
+				y: t.top - b.top - oy - Math.round((b.height * s - t.height) / 2)
 			}, 
 			scale: s
 		});
@@ -337,7 +342,7 @@
 	 * Sets position and size of the given jQuery object to match the current viewport dimensions.
 	 */
 	function fitToView(el) {
-		if (window.orientation) {
+		if (mobileSafari) {
 			el.css({top: getScrollTop() + 'px', left: getScrollLeft() + 'px'});
 		}
 		return el.width(getInnerWidth()).height(getInnerHeight());
