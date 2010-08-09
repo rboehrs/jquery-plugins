@@ -105,6 +105,7 @@
 				img.onload = function() {
 					var $this = $(this).css({position: 'absolute', display: 'block'}).transform(false);
 					centerImage(i, this, $this).appendTo(page.activity(false));
+					page.trigger('loaded');
 				};
 			}
 		});
@@ -246,7 +247,16 @@
 	}
 	
 	function loadSurroundingImages(i) {
-		getPage(i-1).add(getPage(i+1)).trigger('loadImage');
+		var page = getPage(i);
+		function triggerLoad() {
+			getPage(i-1).add(getPage(i+1)).trigger('loadImage');
+		}
+		if (page.find('img').length > 0) {
+			triggerLoad();
+		}
+		else {
+			page.one('loaded', triggerLoad);
+		}
 	}
 	
 	/**
