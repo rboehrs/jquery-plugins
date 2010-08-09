@@ -24,7 +24,7 @@ The plugin requires jQuery v1.4.2 (or higher).
 Usage
 -----
 
-<!--% highlight html -->
+<!-- % highlight html -->
     <div id="gallery">
       <a href="image1.jpg">
         <img src="thumb1.jpg" />
@@ -40,12 +40,12 @@ Usage
     <script>
       $('#gallery a').touchGallery();
     </script>
-<!--% endhighlight -->
+<!-- % endhighlight -->
 	
 By default the plugin uses the `href` attribute of the matched elements to obtain the URL of the
 large-scale images. You may change this behaviour by providing a `getSource` function:
 
-<!--% highlight html+javascript -->
+<!-- % highlight html+javascript -->
     <img src="thumb1.jpg" data-large="image1.jpg" />
     <img src="thumb2.jpg" data-large="image2.jpg" />
     <img src="thumb3.jpg"  data-large="image3.jpg" />
@@ -57,7 +57,7 @@ large-scale images. You may change this behaviour by providing a `getSource` fun
         }
       });
     </script>
-<!--% endhighlight -->
+<!-- % endhighlight -->
   
 Links
 -----
