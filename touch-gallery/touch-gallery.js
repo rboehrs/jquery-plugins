@@ -93,7 +93,7 @@
 					stripe.addClass('ready');
 					loadSurroundingImages(index);
 				});
-				insertShade(viewport, function());
+				insertShade(viewport);
 			}
 			else {
 				page.activity({color: '#fff'});
