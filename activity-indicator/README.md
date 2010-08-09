@@ -80,6 +80,7 @@ appearance:
 
  - padding
    Extra padding around the indicator. Default is `4`.
+
  - outside
    Whether the spinner should be added to the body rather than
    to the target element. Useful if the target doesn't support
