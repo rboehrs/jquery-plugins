@@ -116,7 +116,7 @@
 				</tokenfilter>
 				<tokenfilter>
 					<filetokenizer/>
-					<replaceregex pattern=" - (.*?)(\n\s+)(.*?)(\n\n)" flags="sg" replace="   &lt;dt>\1&lt;/dt>\2&lt;dd>\3&lt;/dd>\4"/>
+					<replaceregex pattern=" - \*\*(.*?)\*\*(\n\s+)(.*?)(\n\n)" flags="sg" replace="   &lt;dt>\1&lt;/dt>\2&lt;dd>\3&lt;/dd>\4"/>
 				</tokenfilter>
 				<!-- Support for embeded liquid expressions: -->
 				<tokenfilter>

@@ -43,45 +43,45 @@ To render the default indicator, invoke `.activity()`. To remove it, call
 `.activity(false)`. You may pass an options object to customize the 
 appearance:
 
- - segments
+ - **segments**
    The number of lines to draw. Default is `12`.
 
- - width
+ - **width**
    The width of each line. Default is `4`.
 
- - space
+ - **space**
    The space between the inner ends of the lines. Default is `3`.
 
- - length
+ - **length**
    The length of the lines. Default is `7`.
 
- - color
+ - **color**
    The color. Supported formats are #rgb and #rrggbb.
    Default is the target element's text color.
 
- - steps
+ - **steps**
    The size of the gradient specified in number of segements.
    All segments with an index greater than this value will
    have the same opacity. Default is `segments-1`.
 
- - opacity
+ - **opacity**
    The opacity of the lightest segment. Default is `1/steps`.
 
- - speed
+ - **speed**
    Rotation speed in rounds per second. Default is `1.2`.
 
- - align
+ - **align**
    The horizontal alignment. Possible values are `left`, `right` 
    or `center` (default).
 
- - valign
+ - **valign**
    The vertical alignment. Possible values are `top`, `bottom` 
    or `center` (default).
 
- - padding
+ - **padding**
    Extra padding around the indicator. Default is `4`.
 
- - outside
+ - **outside**
    Whether the spinner should be added to the body rather than
    to the target element. Useful if the target doesn't support
    nested elements, for example img, object or input elements.
