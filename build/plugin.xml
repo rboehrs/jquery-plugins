@@ -118,9 +118,13 @@
 					<filetokenizer/>
 					<replaceregex pattern=" - \*\*(.*?)\*\*(\n\s+)(.*?)(\n\n)" flags="sg" replace="   &lt;dt>\1&lt;/dt>\2&lt;dd>\3&lt;/dd>\4"/>
 				</tokenfilter>
+				<!-- Support `...` inside definition lists: -->
+				<tokenfilter>
+					<replaceregex pattern="`(.*?)`" flags="sg" replace="&lt;code>\1&lt;/code>"/>
+				</tokenfilter>
 				<!-- Support for embeded liquid expressions: -->
 				<tokenfilter>
-					<replaceregex pattern="&lt;div class=&quot;liquid (.*?)&quot;&gt;&lt;/div&gt;" flags="s" replace="{% \1 %}"/>
+					<replaceregex pattern="&lt;div class=&quot;liquid (.*?)&quot;>&lt;/div>" flags="s" replace="{% \1 %}"/>
 				</tokenfilter>
 				<!-- Strip the links section (and everything below) -->
 				<tokenfilter>
