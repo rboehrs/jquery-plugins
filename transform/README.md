@@ -13,7 +13,9 @@ Transformations
 
 Sets or gets the CSS transform state.
 
-    .transform(options)
+* .transform(options)
+* .transform(false)
+* .transform()
 
 ### Options
 
@@ -34,6 +36,16 @@ Sets or gets the CSS transform state.
 
 You may use the `$.fn.transform.supported` property to check if the browser supports 
 CSS transforms.
+
+### Reset
+
+Calling `.transform(false)` resets the state to its default, i.e.:
+
+	scale: {x: 1, y: 1},
+	translate: {x: 0, y: 0},
+	rotate: {deg: 0}
+
+### Query State
 
 If called without arguments, the plugin returns the current state:
 
@@ -85,7 +97,11 @@ Example:
 
 <div class="liquid highlight javascript"></div>
 
-    $('#foo').transformTransition({scale: 2, opacity: 0.5, duration: 1.5});
+    $('#foo').transformTransition({
+    	scale: 2,
+    	opacity: 0.5,
+    	duration: 1.5
+    });
 
 <div class="liquid endhighlight"></div>
   
