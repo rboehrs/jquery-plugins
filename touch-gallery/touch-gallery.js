@@ -131,12 +131,15 @@
 	 */
 	function insertShade(target, onFinish) {
 		var el = $('<div id="galleryShade">').css({
-			position: 'fixed', top: 0, left: 0, background: '#000', width: '100%', height: '100%', opacity: 0
+			top: 0, left: 0, background: '#000', opacity: 0
 		});
 		if (mobileSafari) {
 			// Make the shade bigger so that it shadows the surface upon rotation
-			var l = Math.max(screen.width, screen.height) + Math.max(getScrollLeft(), getScrollTop()) + 100;
-			el.width(l).height(l);
+			var l = Math.max(screen.width, screen.height) * (window.devicePixelRatio || 1) + Math.max(getScrollLeft(), getScrollTop()) + 100;
+			el.css({position: 'absolute'}).width(l).height(l);
+		}
+		else {
+			el.css({position: 'fixed', width: '100%', height: '100%'});
 		}
 		el.insertBefore(target)
 		.transform(false)
